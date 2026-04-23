@@ -1,0 +1,11 @@
+django
+djangorestframework
+django-cors-headers
+langchain
+langchain-community
+langchain-openai
+langchain-classic
+pydantic
+mcp
+requests
+python-dotenv
