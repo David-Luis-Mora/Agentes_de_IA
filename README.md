@@ -22,7 +22,8 @@ El sistema sigue una arquitectura de 3 capas:
 
 ## Tecnologías Utilizadas
 
-- **Backend**: Django, Django REST Framework.
+- **Frontend**: Vue 3 (Composition API), Vite, Pinia, Vue Router.
+- **Backend**: Django, Django REST Framework, JWT.
 - **IA**: LangChain, Ollama (Gemma 2 / Qwen).
 - **Protocolos**: MCP (Model Context Protocol).
 - **Base de Datos**: SQLite3.
@@ -41,15 +42,20 @@ El sistema sigue una arquitectura de 3 capas:
    cd Agentes_de_IA
    ```
 
-2. **Configurar el entorno virtual**:
+2. **Configurar el Backend**:
    ```bash
+   cd backend
    python -m venv venv
+   # En Windows:
+   .\venv\Scripts\activate
+   # En Linux/Mac:
    source venv/bin/activate
    pip install -r requirements.txt
    ```
 
 3. **Configurar el servidor MCP**:
    ```bash
+   # Dentro de la carpeta backend o donde lo hayas instalado
    cd gym-tracker-mcp
    npm install
    npm run build
@@ -63,9 +69,16 @@ El sistema sigue una arquitectura de 3 capas:
    python manage.py migrate
    ```
 
-6. **Iniciar el servidor**:
+6. **Iniciar el Backend**:
    ```bash
    python manage.py runserver
+   ```
+
+7. **Iniciar el Frontend (Vue)**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
    ```
 
 ## Uso del Agente
