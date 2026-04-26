@@ -5,14 +5,14 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.tools import tool
 
-# Paths
+# Rutas
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KB_PATH = os.path.join(BASE_DIR, "Manual-nutricion-dietetica-CARBAJAL.pdf")
 CHROMA_DIR = os.path.join(BASE_DIR, "data", "nutrition_chroma_pdf")
 
 def initialize_vector_store():
     """
-    Initializes or loads the Chroma vector store with nutrition knowledge from PDF.
+    Inicializa o carga el almacén de vectores Chroma con conocimientos de nutrición del PDF.
     """
     embeddings = OllamaEmbeddings(
         model="mxbai-embed-large",
@@ -20,7 +20,10 @@ def initialize_vector_store():
     )
 
     if not os.path.exists(CHROMA_DIR):
-        print("Initializing new Nutrition Vector Store from PDF...")
+        print("Inicializando nuevo Almacén de Vectores de Nutrición desde PDF...")
+        if not os.path.exists(KB_PATH):
+             return None
+        
         loader = PyPDFLoader(KB_PATH)
         documents = loader.load()
         
@@ -44,8 +47,8 @@ def initialize_vector_store():
             collection_name="nutrition_knowledge"
         )
 
-# Initialize globally or inside the tool? 
-# For performance, we can do it once.
+# ¿Inicializar globalmente o dentro de la herramienta?
+# Por rendimiento, lo hacemos una sola vez.
 _vectorstore = None
 
 def get_vectorstore():
@@ -57,13 +60,16 @@ def get_vectorstore():
 @tool
 def search_nutrition_knowledge(query: str):
     """
-    Searches the nutrition knowledge base for recommendations on diets, 
-    protein intake, and supplementation.
+    Busca en la base de conocimientos de nutrición recomendaciones sobre dietas,
+    ingesta de proteínas y suplementación.
     """
     try:
         vs = get_vectorstore()
+        if vs is None:
+            return "El manual de nutrición no está disponible."
+            
         results = vs.similarity_search(query, k=2)
         content = "\n\n".join([doc.page_content for doc in results])
         return content
     except Exception as e:
-        return f"Error searching nutrition KB: {str(e)}"
+        return f"Error al buscar en la base de conocimientos de nutrición: {str(e)}"

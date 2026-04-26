@@ -8,6 +8,10 @@
 
       <div class="navbar-links">
         <template v-if="authStore.user">
+          <router-link to="/routine" class="nav-link">
+            <Calendar :size="20" />
+            <span>Rutina</span>
+          </router-link>
           <router-link to="/profile" class="nav-link">
             <User :size="20" />
             <span>{{ authStore.user.username }}</span>
@@ -27,7 +31,7 @@
 </template>
 
 <script setup>
-import { Dumbbell, LogOut, User } from 'lucide-vue-next';
+import { Dumbbell, LogOut, User, Calendar } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
 

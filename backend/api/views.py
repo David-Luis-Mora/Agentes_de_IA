@@ -7,7 +7,27 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from langchain_core.messages import HumanMessage
 
-from core.models import Profile, Token
+from core.models import Profile, Token, Routine
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_routines(request):
+    routines = Routine.objects.filter(user=request.user).prefetch_related('exercises')
+    data = {}
+    for r in routines:
+        data[r.day_of_week] = {
+            "name": r.name,
+            "exercises": [
+                {
+                    "name": ex.name,
+                    "description": ex.description,
+                    "video_url": ex.video_url,
+                    "image_url": ex.image_url,
+                    "order": ex.order
+                } for ex in r.exercises.all().order_by('order')
+            ]
+        }
+    return JsonResponse(data)
 from agent.factory import get_gym_agent
 
 @api_view(['POST'])
@@ -51,7 +71,7 @@ def chat(request):
         # Since @api_view might not handle async functions correctly in this environment,
         # we run the async agent logic in a sync wrapper.
         async def call_agent():
-            agent = await get_gym_agent()
+            agent = await get_gym_agent(user)
             response = await agent.ainvoke({
                 "messages": [
                     HumanMessage(content=user_message)

@@ -6,20 +6,20 @@ BASE_URL = "https://wger.de/api/v2"
 @tool
 def get_exercises_by_muscle(muscle_id: int):
     """
-    Fetches a list of exercises from Wger API filtered by muscle ID.
-    Muscle IDs: 1 (Biceps), 2 (Shoulders), 3 (Chest), 4 (Back), 9 (Triceps), 10 (Quads), 11 (Hamstrings), 12 (Calves).
+    Obtiene una lista de ejercicios de la API de Wger filtrada por ID de músculo.
+    IDs de Músculos: 1 (Bíceps), 2 (Hombros), 3 (Pecho), 4 (Espalda), 9 (Tríceps), 10 (Cuádriceps), 11 (Isquiotibiales), 12 (Gemelos).
     """
-    url = f"{BASE_URL}/exercise/?muscle={muscle_id}&language=2"  # language 2 is English
+    url = f"{BASE_URL}/exercise/?muscle={muscle_id}&language=2"  # el lenguaje 2 es inglés (la API tiene más datos en inglés)
     response = requests.get(url)
     if response.status_code == 200:
         results = response.json().get('results', [])
-        return [{"id": r['id'], "name": r['name'], "description": r['description']} for r in results]
+        return [{"id": r.get('id'), "nombre": r.get('name', 'N/A'), "descripcion": r.get('description', '')} for r in results]
     return f"Error: {response.status_code}"
 
 @tool
 def get_exercise_details(exercise_id: int):
     """
-    Fetches detailed information about a specific exercise by ID.
+    Obtiene información detallada sobre un ejercicio específico mediante su ID.
     """
     url = f"{BASE_URL}/exercise/{exercise_id}/"
     response = requests.get(url)
@@ -30,11 +30,25 @@ def get_exercise_details(exercise_id: int):
 @tool
 def get_muscles():
     """
-    Fetches the list of muscles and their IDs.
+    Obtiene la lista de músculos y sus respectivos IDs.
     """
     url = f"{BASE_URL}/muscle/"
     response = requests.get(url)
     if response.status_code == 200:
         results = response.json().get('results', [])
-        return [{"id": r['id'], "name": r['name']} for r in results]
+        return [{"id": r.get('id'), "nombre": r.get('name', 'N/A')} for r in results]
     return f"Error: {response.status_code}"
+
+@tool
+def get_exercise_video(exercise_id: int):
+    """
+    Busca si existe un video demostrativo para un ejercicio específico.
+    """
+    url = f"{BASE_URL}/exercisevideo/?exercise={exercise_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        results = response.json().get('results', [])
+        if results:
+            video = results[0].get('video')
+            return video if video else "No se encontró video para este ejercicio."
+    return "No se encontró video para este ejercicio."

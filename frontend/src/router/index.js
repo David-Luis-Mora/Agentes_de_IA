@@ -4,12 +4,19 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Home from '../views/Home.vue';
 import ProfileSetup from '../views/ProfileSetup.vue';
+import Routine from '../views/Routine.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/routine',
+    name: 'Routine',
+    component: Routine,
     meta: { requiresAuth: true }
   },
   {

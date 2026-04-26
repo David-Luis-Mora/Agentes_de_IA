@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import chat, profile, register
+from .views import chat, profile, register, get_routines
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -11,4 +11,5 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('chat/', chat, name='chat'),
     path('profile/', profile, name='profile'),
+    path('routines/', get_routines, name='routines'),
 ]

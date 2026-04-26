@@ -1,33 +1,33 @@
-# Fitness & Hypertrophy Principles
+# Principios de Fitness e Hipertrofia
 
-## 1. Progressive Overload
-To build muscle (hypertrophy), you must gradually increase the stress placed on the body during exercise. This can be done by:
-- Increasing the weight lifted.
-- Increasing the number of repetitions.
-- Decreasing rest time between sets.
-- Improving exercise technique.
+## 1. Sobrecarga Progresiva
+Para ganar masa muscular (hipertrofia), debes aumentar gradualmente el estrés que aplicas al cuerpo durante el ejercicio. Esto se puede lograr:
+- Aumentando el peso levantado.
+- Aumentando el número de repeticiones.
+- Disminuyendo el tiempo de descanso entre series.
+- Mejorando la técnica del ejercicio.
 
-## 2. Training Volume
-Volume is defined as Sets x Reps x Weight. For most people, performing 10-20 hard sets per muscle group per week is optimal for growth.
+## 2. Volumen de Entrenamiento
+El volumen se define como Series x Repeticiones x Peso. Para la mayoría de las personas, realizar entre 10 y 20 series efectivas por grupo muscular a la semana es óptimo para el crecimiento.
 
-## 3. Rest and Recovery
-Muscle grows during rest, not during the workout. Aim for:
-- 48-72 hours of rest between training the same muscle group.
-- 7-9 hours of quality sleep per night.
+## 3. Descanso y Recuperación
+El músculo crece durante el descanso, no durante el entrenamiento. Se recomienda:
+- 48-72 horas de descanso antes de entrenar el mismo grupo muscular.
+- 7-9 horas de sueño de calidad por noche.
 
-## 4. Nutrition for Muscle Growth
-- **Protein**: Aim for 1.6g to 2.2g of protein per kilogram of body weight.
-- **Caloric Surplus**: To gain muscle effectively, consume slightly more calories than you burn (200-300 kcal surplus).
-- **Hydration**: Drink at least 3 liters of water daily.
+## 4. Nutrición para el Crecimiento Muscular
+- **Proteína**: Intenta consumir entre 1.6g y 2.2g de proteína por kilogramo de peso corporal.
+- **Superávit Calórico**: Para ganar músculo de forma efectiva, consume un poco más de calorías de las que quemas (un superávit de 200-300 kcal).
+- **Hidratación**: Bebe al menos 3 litros de agua al día.
 
-## 5. Exercise Selection
-- **Compound Movements**: Exercises that involve multiple joints (Squats, Bench Press, Deadlifts, Rows). These should form the core of your routine.
-- **Isolation Movements**: Exercises that target a single muscle (Bicep Curls, Lateral Raises). Use these to supplement compound lifts.
+## 5. Selección de Ejercicios
+- **Movimientos Compuestos**: Ejercicios que involucran múltiples articulaciones (Sentadillas, Press de Banca, Peso Muerto, Remos). Estos deben ser el núcleo de tu rutina.
+- **Movimientos de Aislamiento**: Ejercicios que se enfocan en un solo músculo (Curl de Bíceps, Elevaciones Laterales). Úsalos para complementar los levantamientos compuestos.
 
-## 6. Routine Structures
-- **Full Body**: Good for beginners or those only able to train 2-3 days a week.
-- **Upper/Lower Split**: Common for 4 days a week.
-- **Push/Pull/Legs (PPL)**: Popular for 3 or 6 days a week.
+## 6. Estructuras de Rutina
+- **Cuerpo Completo (Full Body)**: Ideal para principiantes o personas que solo pueden entrenar 2-3 días a la semana.
+- **División Torso/Pierna**: Común para entrenar 4 días a la semana.
+- **Empuje/Tracción/Pierna (Push/Pull/Legs - PPL)**: Popular para entrenar 3 o 6 días a la semana.
 
-## 7. Importance of Consistency
-Optimal results come from staying consistent over months and years, rather than intense but sporadic training sessions.
+## 7. Importancia de la Consistencia
+Los resultados óptimos provienen de ser constante durante meses y años, en lugar de sesiones intensas pero esporádicas.

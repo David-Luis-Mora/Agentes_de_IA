@@ -7,18 +7,18 @@ KNOWLEDGE_BASE_PATH = os.path.join(BASE_DIR, "knowledge_base.txt")
 @tool
 def search_knowledge_base(query: str):
     """
-    Searches the local knowledge base for expert fitness advice, hypertrophy principles, and nutrition information.
-    Use this to back up recommendations with science-based principles.
+    Busca en la base de conocimientos local consejos de expertos en fitness, principios de hipertrofia e información nutricional.
+    Utiliza esto para respaldar tus recomendaciones con principios basados en la ciencia.
     """
     if not os.path.exists(KNOWLEDGE_BASE_PATH):
-        return "Knowledge base not found."
+        return "Base de conocimientos no encontrada."
     
-    with open(KNOWLEDGE_BASE_PATH, 'r') as f:
+    with open(KNOWLEDGE_BASE_PATH, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # For a small file, we can just return the relevant sections or the whole content
-    # If the file grows, implement chunking and similarity search.
-    # For now, let's look for keywords.
+    # Para un archivo pequeño, podemos simplemente devolver las secciones relevantes o todo el contenido.
+    # Si el archivo crece, implementaremos división en trozos (chunking) y búsqueda por similitud.
+    # Por ahora, buscaremos palabras clave.
     
     keywords = query.lower().split()
     lines = content.split('\n')

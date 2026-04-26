@@ -50,3 +50,33 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+class Routine(models.Model):
+    DAYS_OF_WEEK = [
+        (0, 'Lunes'),
+        (1, 'Martes'),
+        (2, 'Miércoles'),
+        (3, 'Jueves'),
+        (4, 'Viernes'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='routines')
+    day_of_week = models.IntegerField(choices=DAYS_OF_WEEK)
+    name = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_day_of_week_display()}"
+
+class RoutineExercise(models.Model):
+    routine = models.ForeignKey(Routine, on_delete=models.CASCADE, related_name='exercises')
+    wger_id = models.IntegerField(null=True, blank=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    video_url = models.URLField(blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.name} in {self.routine}"
