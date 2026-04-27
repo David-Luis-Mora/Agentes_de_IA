@@ -5,6 +5,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from asgiref.sync import sync_to_async
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 # Importación de herramientas externas
 from .tools.wger_tools import get_exercises_by_muscle, get_exercise_details, get_muscles, get_exercise_video
@@ -87,80 +88,91 @@ def create_user_bound_tools(user):
     @tool
     def save_workout_plan(plan: list):
         """
-        Guarda un plan de entrenamiento completo (puede ser uno o varios días).
-        'plan' debe ser una lista de diccionarios. Cada diccionario debe tener:
-        - 'day_of_week': int (0=Lunes, 1=Martes, ..., 6=Domingo)
-        - 'exercises': lista de objetos con 'name', 'wger_id', 'description', 'video_url'
-        - 'routine_name': opcional (por defecto será 'Rutina')
+        Guarda un plan de entrenamiento completo en la base de datos de Django.
+        'plan' debe ser una lista de diccionarios.
         """
         from core.models import Routine, RoutineExercise
+        import logging
+        logger = logging.getLogger(__name__)
         
-        results = []
-        for day_data in plan:
-            day = day_data.get('day_of_week')
-            name = day_data.get('routine_name', 'Rutina')
-            exercises = day_data.get('exercises', [])
-            
-            if day is None:
-                continue
-            
-            # Limpiar rutina previa de ese día
-            Routine.objects.filter(user=user, day_of_week=day).delete()
-            
-            # Crear nueva rutina
-            r = Routine.objects.create(user=user, day_of_week=day, name=name)
-            
-            for idx, ex in enumerate(exercises):
-                if isinstance(ex, dict):
-                    ex_name = ex.get('name', 'Ejercicio')
-                    wger_id = ex.get('wger_id')
-                    desc = ex.get('description', '')
-                    video = ex.get('video_url')
-                else:
-                    ex_name = str(ex)
-                    wger_id = None
-                    desc = ""
-                    video = None
+        try:
+            print(f"DEBUG: Intentando guardar plan para el usuario {user.username}...")
+            results = []
+            for day_data in plan:
+                day = day_data.get('day_of_week')
+                name = day_data.get('routine_name', 'Rutina')
+                exercises = day_data.get('exercises', [])
+                
+                if day is None:
+                    continue
+                
+                # Operaciones en la DB
+                print(f"DEBUG: Guardando día {day} - {name} ({len(exercises)} ejercicios)")
+                
+                # Limpiar rutina previa
+                Routine.objects.filter(user=user, day_of_week=day).delete()
+                
+                # Crear nueva rutina
+                r = Routine.objects.create(user=user, day_of_week=day, name=name)
+                
+                for idx, ex in enumerate(exercises):
+                    if isinstance(ex, dict):
+                        ex_name = ex.get('name', 'Ejercicio')
+                        wger_id = ex.get('wger_id')
+                        desc = ex.get('description', '')
+                        video = ex.get('video_url')
+                    else:
+                        ex_name = str(ex)
+                        wger_id = None
+                        desc = ""
+                        video = None
 
-                RoutineExercise.objects.create(
-                    routine=r,
-                    wger_id=wger_id,
-                    name=ex_name,
-                    description=desc,
-                    video_url=video,
-                    order=idx
-                )
-            results.append(f"Día {day}")
+                    RoutineExercise.objects.create(
+                        routine=r,
+                        wger_id=wger_id,
+                        name=ex_name,
+                        description=desc,
+                        video_url=video,
+                        order=idx
+                    )
+                results.append(f"Día {day}")
             
-        return f"Plan guardado correctamente para: {', '.join(results)}."
+            msg = f"Plan guardado correctamente para: {', '.join(results)}."
+            print(f"DEBUG: {msg}")
+            return msg
+        except Exception as e:
+            error_msg = f"Error al guardar la rutina: {str(e)}"
+            print(f"DEBUG ERROR: {error_msg}")
+            return error_msg
 
     return [get_my_profile, update_my_profile, save_workout_plan]
 
 # --- FUNCIÓN PRINCIPAL ---
 
-async def get_gym_agent(user):
+async def get_gym_agent(user, checkpointer=None):
     """
-    Crea y devuelve el Agente GymAI unificado.
+    Crea y devuelve el Agente GymAI unificado con soporte para memoria.
     """
     # 1. Preparar contexto
     user_data = await fetch_user_context(user)
     profile_context = format_profile_context(user_data, user.username)
     print(f"DEBUG: Contexto cargado para {user.username}")
 
-    # 2. Clientes Externos (MCP)
-    mcp_client = MultiServerMCPClient({
-        "gym_tracker": {
-            "transport": "stdio",
-            "command": "node",
-            "args": [MCP_SERVER_PATH]
-        }
-    })
+    # 2. Clientes Externos (MCP) - DESACTIVADO TEMPORALMENTE
+    # Para activar: Configurar .env en gym-tracker-mcp y desenterrar este bloque.
+    # mcp_client = MultiServerMCPClient({
+    #     "gym_tracker": {
+    #         "transport": "stdio",
+    #         "command": "node",
+    #         "args": [MCP_SERVER_PATH]
+    #     }
+    # })
     
-    try:
-        mcp_tools = await mcp_client.get_tools()
-    except Exception as e:
-        print(f"Warning: MCP Error: {e}")
-        mcp_tools = []
+    # try:
+    #     mcp_tools = await mcp_client.get_tools()
+    # except Exception as e:
+    #     print(f"Warning: MCP Error: {e}")
+    mcp_tools = []
     
     # 3. Consolidar todas las herramientas
     user_tools = create_user_bound_tools(user)
@@ -175,15 +187,18 @@ async def get_gym_agent(user):
     
     # 4. Configurar el LLM
     llm = ChatOllama(
-        model="qwen3.6:35b",
+        # model="qwen3.6:35b",
+        model="gemma4:26b",
         reasoning=False,
         num_ctx=8000,
+        base_url="http://192.168.117.48:11434"
     )
     
     # 5. Crear el Agente
     agent = create_agent(
         model=llm,
         tools=all_tools,
+        checkpointer=checkpointer,
         system_prompt=(
             "Eres 'GymAI', un experto integral en Fitness, Entrenamiento y Nutrición Deportiva.\n\n"
             "CONTEXTO DEL USUARIO:\n"

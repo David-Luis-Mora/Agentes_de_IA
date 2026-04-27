@@ -6,8 +6,10 @@ from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from langchain_core.messages import HumanMessage
-
+from agent.factory import get_gym_agent
 from core.models import Profile, Token, Routine
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+import os
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -28,7 +30,7 @@ def get_routines(request):
             ]
         }
     return JsonResponse(data)
-from agent.factory import get_gym_agent
+
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -68,16 +70,23 @@ def chat(request):
         return JsonResponse({"error": "Missing message"}, status=400)
 
     try:
-        # Since @api_view might not handle async functions correctly in this environment,
-        # we run the async agent logic in a sync wrapper.
+        # DB Path for memory
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        SQLITE_PATH = os.path.join(BASE_DIR, "data", "gym_memory.db")
+
         async def call_agent():
-            agent = await get_gym_agent(user)
-            response = await agent.ainvoke({
-                "messages": [
-                    HumanMessage(content=user_message)
-                ]
-            })
-            return response["messages"][-1].content
+            # Persistent memory connection (Async)
+            async with AsyncSqliteSaver.from_conn_string(SQLITE_PATH) as checkpointer:
+                agent = await get_gym_agent(user, checkpointer=checkpointer)
+                
+                # Configuration with user-specific thread_id
+                config = {"configurable": {"thread_id": str(user.id)}}
+                
+                response = await agent.ainvoke(
+                    {"messages": [HumanMessage(content=user_message)]},
+                    config=config
+                )
+                return response["messages"][-1].content
 
         output = asyncio.run(call_agent())
         return JsonResponse({"response": output}, status=200)

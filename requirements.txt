@@ -11,9 +11,12 @@ langchain-mcp-adapters
 langchain-chroma
 langchain-text-splitters
 langgraph
+langgraph-checkpoint-sqlite
+aiosqlite
 pydantic
 mcp
 requests
 python-dotenv
 asgiref
 pypdf
+Pillow
