@@ -60,6 +60,10 @@ def get_vectorstore():
 @tool
 def search_nutrition_knowledge(query: str):
     """
+    Solo llama la tool cuando el usuario te pida información sobre nutrición.
+    Le recomiendes una dieta basica un poco generica
+    Siempre recomienda que consulte a un nutricionista para una dieta personalizada y adaptada a tu necesidades.
+    
     Busca en la base de conocimientos de nutrición recomendaciones sobre dietas,
     ingesta de proteínas y suplementación.
     """

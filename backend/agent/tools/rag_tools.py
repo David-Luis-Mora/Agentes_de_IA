@@ -2,7 +2,7 @@ import os
 from langchain_core.tools import tool
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-KNOWLEDGE_BASE_PATH = os.path.join(BASE_DIR, "knowledge_base.txt")
+KNOWLEDGE_BASE_PATH = os.path.join(BASE_DIR, "knowledge_base.md")
 
 @tool
 def search_knowledge_base(query: str):

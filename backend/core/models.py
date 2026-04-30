@@ -80,3 +80,19 @@ class RoutineExercise(models.Model):
 
     def __str__(self):
         return f"{self.name} in {self.routine}"
+
+class Notification(models.Model):
+    class Type(models.TextChoices):
+        SUCCESS = 'success', 'Éxito'
+        INFO = 'info', 'Información'
+        WARNING = 'warning', 'Advertencia'
+        ERROR = 'error', 'Error'
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    type = models.CharField(max_length=20, choices=Type.choices, default=Type.INFO)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:20]}..."

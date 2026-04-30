@@ -1,6 +1,7 @@
 <template>
   <div class="app-layout">
     <Navbar />
+    <NotificationToast />
     <router-view v-slot="{ Component }">
       <transition name="fade" mode="out-in">
         <component :is="Component" />
@@ -11,6 +12,7 @@
 
 <script setup>
 import Navbar from './components/Navbar.vue';
+import NotificationToast from './components/NotificationToast.vue';
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 

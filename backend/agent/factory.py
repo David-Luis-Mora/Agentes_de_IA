@@ -91,7 +91,7 @@ def create_user_bound_tools(user):
         Guarda un plan de entrenamiento completo en la base de datos de Django.
         'plan' debe ser una lista de diccionarios.
         """
-        from core.models import Routine, RoutineExercise
+        from core.models import Routine, RoutineExercise, Notification
         import logging
         logger = logging.getLogger(__name__)
         
@@ -137,7 +137,14 @@ def create_user_bound_tools(user):
                     )
                 results.append(f"Día {day}")
             
-            msg = f"Plan guardado correctamente para: {', '.join(results)}."
+            # Crear Notificación persistente
+            msg = f"Tu plan de entrenamiento para {', '.join(results)} ha sido guardado correctamente."
+            Notification.objects.create(
+                user=user,
+                message=msg,
+                type=Notification.Type.SUCCESS
+            )
+            
             print(f"DEBUG: {msg}")
             return msg
         except Exception as e:
@@ -157,21 +164,7 @@ async def get_gym_agent(user, checkpointer=None):
     user_data = await fetch_user_context(user)
     profile_context = format_profile_context(user_data, user.username)
     print(f"DEBUG: Contexto cargado para {user.username}")
-
-    # 2. Clientes Externos (MCP) - DESACTIVADO TEMPORALMENTE
-    # Para activar: Configurar .env en gym-tracker-mcp y desenterrar este bloque.
-    # mcp_client = MultiServerMCPClient({
-    #     "gym_tracker": {
-    #         "transport": "stdio",
-    #         "command": "node",
-    #         "args": [MCP_SERVER_PATH]
-    #     }
-    # })
     
-    # try:
-    #     mcp_tools = await mcp_client.get_tools()
-    # except Exception as e:
-    #     print(f"Warning: MCP Error: {e}")
     mcp_tools = []
     
     # 3. Consolidar todas las herramientas

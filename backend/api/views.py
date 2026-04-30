@@ -139,3 +139,28 @@ def profile(request):
         user_profile.balance = data.get('balance', user_profile.balance)
         user_profile.save()
         return JsonResponse({"message": "Profile updated successfully"})
+
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def notifications(request):
+    if request.method == 'GET':
+        # Obtener notificaciones no leídas
+        notifs = request.user.notifications.filter(is_read=False).order_by('-created_at')
+        data = [
+            {
+                "id": n.id,
+                "message": n.message,
+                "type": n.type,
+                "created_at": n.created_at
+            } for n in notifs
+        ]
+        return JsonResponse(data, safe=False)
+
+    if request.method == 'POST':
+        # Marcar todas como leídas o una específica
+        notif_id = request.data.get('id')
+        if notif_id:
+            request.user.notifications.filter(id=notif_id).update(is_read=True)
+        else:
+            request.user.notifications.filter(user=request.user).update(is_read=True)
+        return JsonResponse({"message": "Notifications marked as read"})
