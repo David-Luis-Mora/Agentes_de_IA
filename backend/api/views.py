@@ -77,7 +77,7 @@ def chat(request):
         async def call_agent():
             # Persistent memory connection (Async)
             async with AsyncSqliteSaver.from_conn_string(SQLITE_PATH) as checkpointer:
-                agent = await get_gym_agent(user, checkpointer=checkpointer)
+                agent = await get_gym_agent(user, request=request, checkpointer=checkpointer)
                 
                 # Configuration with user-specific thread_id
                 config = {"configurable": {"thread_id": str(user.id)}}
@@ -138,6 +138,8 @@ def profile(request):
         user_profile.address = data.get('address', user_profile.address)
         user_profile.balance = data.get('balance', user_profile.balance)
         user_profile.save()
+        from django.contrib import messages
+        messages.success(request, 'Perfil actualizado exitosamente.')
         return JsonResponse({"message": "Profile updated successfully"})
 
 @api_view(['GET', 'POST'])
