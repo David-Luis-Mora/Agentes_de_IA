@@ -7,9 +7,16 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'nickname', 'email')
     list_filter = ('role', 'fitness_goal')
 
-class RoutineExerciseInline(admin.TabularInline):
+class RoutineExerciseInline(admin.StackedInline):
     model = RoutineExercise
     extra = 1
+    fields = (
+        'name', 'order', 'wger_id', 'category', 
+        'primary_muscle', 'secondary_muscle', 
+        'description', 'instructions', 
+        'video_url', 'image_url', 'sets_data'
+    )
+
 
 @admin.register(Routine)
 class RoutineAdmin(admin.ModelAdmin):
@@ -20,9 +27,10 @@ class RoutineAdmin(admin.ModelAdmin):
 
 @admin.register(RoutineExercise)
 class RoutineExerciseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'routine', 'order')
-    list_filter = ('routine__user',)
-    search_fields = ('name',)
+    list_display = ('name', 'routine', 'primary_muscle', 'category', 'order')
+    list_filter = ('routine__user', 'category')
+    search_fields = ('name', 'primary_muscle')
+
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

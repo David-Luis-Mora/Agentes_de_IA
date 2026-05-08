@@ -46,7 +46,7 @@ def save_workout_plan(plan: list):
     # 'plan' debe ser una lista de uno o más días con: day_of_week (0-6), routine_name (str) y exercises (list).
     # """
     """
-    IMPORTANTE: Única forma de guardar rutinas. LLAMA A ESTA HERRAMIENTA cuando el usuario acepte una rutina.
+     IMPORTANTE: Única forma de guardar rutinas. LLAMA A ESTA HERRAMIENTA cuando el usuario acepte una rutina.
     'plan' debe ser una lista de uno o más días, cada día con:
     - day_of_week (int): 0-6
     - routine_name (str): Ejemplo 'Empuje'
@@ -63,12 +63,14 @@ def save_workout_plan(plan: list):
     try:
         results = []
         for day_data in plan:
-            day = day_data.get('day_of_week')
-            name = day_data.get('routine_name', 'Rutina')
+            day = day_data.get('day_of_week', day_data.get('dayOfWeek'))
+            name = day_data.get('routine_name', day_data.get('routineName', 'Rutina'))
             exercises = day_data.get('exercises', [])
             
             if day is None:
+                print(f"DEBUG TOOL: Saltando bloque sin día: {day_data}")
                 continue
+
             
             # Limpiar rutina previa
             Routine.objects.filter(user=user, day_of_week=day).delete()
@@ -78,15 +80,34 @@ def save_workout_plan(plan: list):
             
             for idx, ex in enumerate(exercises):
                 if isinstance(ex, dict):
+                    # Robust check for both Snake Case and Camel Case (from APIs)
                     ex_name = ex.get('name', 'Ejercicio')
                     wger_id = ex.get('wger_id')
-                    desc = ex.get('description', '')
-                    video = ex.get('video_url')
+                    desc = ex.get('description', ex.get('overview', ''))
+                    video = ex.get('video_url', ex.get('videoUrl'))
+                    image = ex.get('image_url', ex.get('imageUrl'))
+                    # Advanced fields
+                    primary = ex.get('primary_muscle', ex.get('primaryMuscle', ''))
+                    secondary = ex.get('secondary_muscle', ex.get('secondaryMuscle', ''))
+                    category = ex.get('category', '')
+                    instructions = ex.get('instructions', '')
+                    
+                    # If instructions is a list (common in ExerciseDB), join it
+                    if isinstance(instructions, list):
+                        instructions = "\n".join(instructions)
+                        
+                    sets = ex.get('sets', [])
                 else:
                     ex_name = str(ex)
                     wger_id = None
                     desc = ""
                     video = None
+                    image = None
+                    primary = ""
+                    secondary = ""
+                    category = ""
+                    instructions = ""
+                    sets = []
 
                 RoutineExercise.objects.create(
                     routine=r,
@@ -94,9 +115,18 @@ def save_workout_plan(plan: list):
                     name=ex_name,
                     description=desc,
                     video_url=video,
+                    image_url=image,
+                    primary_muscle=primary,
+                    secondary_muscle=secondary,
+                    category=category,
+                    instructions=instructions,
+                    sets_data=sets,
                     order=idx
                 )
+
             results.append(f"Día {day}")
+
+
         
         # Crear Notificación persistente
         msg = f"Tu plan de entrenamiento para {', '.join(results)} ha sido guardado correctamente."

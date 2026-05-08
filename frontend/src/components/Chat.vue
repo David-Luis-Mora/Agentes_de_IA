@@ -68,6 +68,18 @@ const scrollToBottom = async () => {
   }
 };
 
+onMounted(async () => {
+  try {
+    const res = await api.get('/chat-history/');
+    if (res.data.history) {
+      messages.value = res.data.history;
+      scrollToBottom();
+    }
+  } catch (err) {
+    console.error("Error loading chat history:", err);
+  }
+});
+
 const sendMessage = async () => {
   if (!newMessage.value.trim() || loading.value) return;
 
@@ -92,6 +104,7 @@ const sendMessage = async () => {
     scrollToBottom();
   }
 };
+
 
 watch(messages, () => {
   scrollToBottom();

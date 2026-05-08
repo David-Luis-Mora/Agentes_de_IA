@@ -34,7 +34,8 @@ export const useNotificationStore = defineStore('notification', {
        this.notifications.push({ id, message, type, isToast: true });
        setTimeout(() => {
          this.notifications = this.notifications.filter(n => n.id !== id);
-       }, 5000);
+       }, 10000);
+
     }
   }
 });

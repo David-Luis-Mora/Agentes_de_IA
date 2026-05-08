@@ -6,49 +6,56 @@ BASE_URL = "https://wger.de/api/v2"
 @tool
 def get_exercises_by_muscle(muscle_id: int):
     """
-    Obtiene una lista de ejercicios de la API de Wger filtrada por ID de músculo.
-    IDs de Músculos: 1 (Bíceps), 2 (Hombros), 3 (Pecho), 4 (Espalda), 9 (Tríceps), 10 (Cuádriceps), 11 (Isquiotibiales), 12 (Gemelos).
+    Obtiene una lista de ejercicios filtrada por músculo usando Wger info.
+    IDs comunes: 1 (Pecho), 2 (Hombros), 10 (Cuádriceps), 12 (Espalda).
     """
-    url = f"{BASE_URL}/exercise/?muscle={muscle_id}&language=2"  # el lenguaje 2 es inglés (la API tiene más datos en inglés)
+    url = f"{BASE_URL}/exerciseinfo/?muscles={muscle_id}&language=2"
     response = requests.get(url)
     if response.status_code == 200:
         results = response.json().get('results', [])
-        return [{"id": r.get('id'), "nombre": r.get('name', 'N/A'), "descripcion": r.get('description', '')} for r in results]
+        return [{
+            "id": r.get('id'),
+            "name": r.get('name'),
+            "category": r.get('category', {}).get('name'),
+            "primary_muscles": [m.get('name') for m in r.get('muscles', [])],
+            "secondary_muscles": [m.get('name') for m in r.get('muscles_secondary', [])]
+        } for r in results[:10]]
     return f"Error: {response.status_code}"
 
 @tool
-def get_exercise_details(exercise_id: int):
+def get_exercise_details_rich(exercise_id: int):
     """
-    Obtiene información detallada sobre un ejercicio específico mediante su ID.
+    Obtiene detalles técnicos COMPLETOS (Músculos, Categoría, Equipo) de Wger.
     """
-    url = f"{BASE_URL}/exercise/{exercise_id}/"
+    url = f"{BASE_URL}/exerciseinfo/{exercise_id}/"
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()
+        data = response.json()
+        return {
+            "id": data.get('id'),
+            "name": data.get('name'),
+            "description": data.get('description'),
+            "category": data.get('category', {}).get('name'),
+            "primary_muscles": [m.get('name') for m in data.get('muscles', [])],
+            "secondary_muscles": [m.get('name') for m in data.get('muscles_secondary', [])],
+            "equipment": [e.get('name') for e in data.get('equipment', [])]
+        }
     return f"Error: {response.status_code}"
 
 @tool
-def get_muscles():
+def get_wger_video(exercise_id: int):
     """
-    Obtiene la lista de músculos y sus respectivos IDs.
+    Busca el video oficial en Wger para un ejercicio.
+    Retorna la URL directa del video .mp4/.mov si existe.
     """
-    url = f"{BASE_URL}/muscle/"
-    response = requests.get(url)
-    if response.status_code == 200:
-        results = response.json().get('results', [])
-        return [{"id": r.get('id'), "nombre": r.get('name', 'N/A')} for r in results]
-    return f"Error: {response.status_code}"
-
-@tool
-def get_exercise_video(exercise_id: int):
-    """
-    Busca si existe un video demostrativo para un ejercicio específico.
-    """
-    url = f"{BASE_URL}/exercisevideo/?exercise={exercise_id}"
+    url = f"{BASE_URL}/video/?exercise={exercise_id}"
     response = requests.get(url)
     if response.status_code == 200:
         results = response.json().get('results', [])
         if results:
-            video = results[0].get('video')
-            return video if video else "No se encontró video para este ejercicio."
-    return "No se encontró video para este ejercicio."
+            # Preferimos el video principal
+            video_data = next((v for v in results if v.get('is_main')), results[0])
+            return video_data.get('video')
+    return "No video found in Wger"
+
+

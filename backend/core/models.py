@@ -76,7 +76,16 @@ class RoutineExercise(models.Model):
     description = models.TextField(blank=True)
     video_url = models.URLField(blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
+    
+    # Advanced fields for professional display
+    primary_muscle = models.CharField(max_length=255, blank=True)
+    secondary_muscle = models.CharField(max_length=255, blank=True)
+    category = models.CharField(max_length=255, blank=True)
+    instructions = models.TextField(blank=True)
+    sets_data = models.JSONField(default=list, blank=True) # stores [{reps: 12, weight: 20}, ...]
+    
     order = models.PositiveIntegerField(default=0)
+
 
     def __str__(self):
         return f"{self.name} in {self.routine}"

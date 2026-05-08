@@ -5,6 +5,9 @@ import Register from '../views/Register.vue';
 import Home from '../views/Home.vue';
 import ProfileSetup from '../views/ProfileSetup.vue';
 import Routine from '../views/Routine.vue';
+import Profile from '../views/Profile.vue';
+
+import ExerciseView from '../views/ExerciseView.vue';
 
 const routes = [
   {
@@ -17,6 +20,12 @@ const routes = [
     path: '/routine',
     name: 'Routine',
     component: Routine,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/exercise/:id',
+    name: 'ExerciseView',
+    component: ExerciseView,
     meta: { requiresAuth: true }
   },
   {
@@ -34,8 +43,15 @@ const routes = [
     name: 'ProfileSetup',
     component: ProfileSetup,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true }
   }
 ];
+
 
 const router = createRouter({
   history: createWebHistory(),

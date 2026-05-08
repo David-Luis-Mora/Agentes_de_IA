@@ -21,15 +21,45 @@ def get_routines(request):
             "name": r.name,
             "exercises": [
                 {
+                    "id": ex.id,
                     "name": ex.name,
                     "description": ex.description,
                     "video_url": ex.video_url,
                     "image_url": ex.image_url,
+                    "primary_muscle": ex.primary_muscle,
+                    "secondary_muscle": ex.secondary_muscle,
+                    "category": ex.category,
+                    "instructions": ex.instructions,
+                    "sets": ex.sets_data,
                     "order": ex.order
                 } for ex in r.exercises.all().order_by('order')
+
             ]
         }
     return JsonResponse(data)
+    
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_exercise_detail(request, exercise_id):
+    from core.models import RoutineExercise
+    try:
+        ex = RoutineExercise.objects.get(id=exercise_id, routine__user=request.user)
+        return JsonResponse({
+            "id": ex.id,
+            "name": ex.name,
+            "description": ex.description,
+            "video_url": ex.video_url,
+            "image_url": ex.image_url,
+            "primary_muscle": ex.primary_muscle,
+            "secondary_muscle": ex.secondary_muscle,
+            "category": ex.category,
+            "instructions": ex.instructions,
+            "sets": ex.sets_data,
+        })
+    except RoutineExercise.DoesNotExist:
+        return JsonResponse({"error": "Exercise not found"}, status=404)
+
+
 
 
 @api_view(['POST'])
@@ -95,6 +125,41 @@ def chat(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"error": str(e)}, status=500)
+        
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def chat_history(request):
+    user = request.user
+    
+    try:
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        SQLITE_PATH = os.path.join(BASE_DIR, "data", "gym_memory.db")
+
+        async def fetch():
+            async with AsyncSqliteSaver.from_conn_string(SQLITE_PATH) as checkpointer:
+                agent = await get_gym_agent(user, request=request, checkpointer=checkpointer)
+                config = {"configurable": {"thread_id": str(user.id)}}
+                state = await agent.aget_state(config)
+                
+                # Obtener mensajes del estado
+                messages = state.values.get("messages", [])
+                
+                history = []
+                for msg in messages:
+                    # Solo mostrar mensajes humanos y de IA con contenido (saltarse llamadas a herramientas)
+                    if msg.type in ['human', 'ai'] and msg.content:
+                        history.append({
+                            "role": 'user' if msg.type == 'human' else 'bot',
+                            "text": msg.content
+                        })
+                return history
+
+        output = asyncio.run(fetch())
+        return JsonResponse({"history": output}, status=200)
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 @api_view(['GET', 'PUT'])
 @permission_classes([permissions.IsAuthenticated])
