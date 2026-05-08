@@ -82,22 +82,28 @@ def save_workout_plan(plan: list):
                 if isinstance(ex, dict):
                     # Robust check for both Snake Case and Camel Case (from APIs)
                     ex_name = ex.get('name', 'Ejercicio')
-                    wger_id = ex.get('wger_id')
+                    wger_id = ex.get('wger_id', ex.get('exerciseId'))
                     desc = ex.get('description', ex.get('overview', ''))
-                    video = ex.get('video_url', ex.get('videoUrl'))
-                    image = ex.get('image_url', ex.get('imageUrl'))
-                    # Advanced fields
-                    primary = ex.get('primary_muscle', ex.get('primaryMuscle', ''))
-                    secondary = ex.get('secondary_muscle', ex.get('secondaryMuscle', ''))
+                    
+                    # Mapping logic based on user quality preference
+                    video = ex.get('video_url', ex.get('videoUrl', ''))
+                    image = ex.get('image_url', ex.get('imageUrl', ''))
                     category = ex.get('category', '')
                     instructions = ex.get('instructions', '')
+
+                    # Muscles - check plural/singular and join lists
+                    primary = ex.get('primary_muscle', ex.get('primary_muscles', ex.get('primaryMuscle', '')))
+                    secondary = ex.get('secondary_muscle', ex.get('secondary_muscles', ex.get('secondaryMuscle', '')))
                     
-                    # If instructions is a list (common in ExerciseDB), join it
-                    if isinstance(instructions, list):
-                        instructions = "\n".join(instructions)
+                    if isinstance(primary, list): primary = ", ".join([str(m) for m in primary])
+                    if isinstance(secondary, list): secondary = ", ".join([str(m) for m in secondary])
+                    if isinstance(instructions, list): instructions = "\n".join([str(i) for i in instructions])
+                    if isinstance(category, dict): category = category.get('name', '')
                         
                     sets = ex.get('sets', [])
                 else:
+                    ...
+
                     ex_name = str(ex)
                     wger_id = None
                     desc = ""

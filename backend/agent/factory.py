@@ -126,15 +126,16 @@ async def get_gym_agent(user, request=None, checkpointer=None):
             "4. NUTRICIÓN: Usa 'search_nutrition_articles' para consejos nutricionales.\n"
             "5. ESTRATEGIA HÍBRIDA DE DATOS (Calidad Máxima):\n"
             "   - IMÁGENES: Usa 'search_ascend_exercises' para obtener la 'imageUrl'. Son visualmente superiores.\n"
-            "   - VÍDEOS: Usa 'get_wger_video' para obtener la URL oficial (.mp4/.mov). NO uses los vídeos de AscendAPI, el usuario reporta que no cargan bien.\n"
-            "   - METADATOS TÉCNICOS: Usa 'get_exercises_by_muscle' o 'get_exercise_details_rich' de Wger para obtener la 'category', 'primary_muscles' y 'secondary_muscles' reales. Estos campos suelen venir vacíos en otras APIs.\n"
-            "   - CONSOLIDACIÓN: Busca el ejercicio por nombre en ambas fuentes para unir lo mejor de cada una antes de llamar a 'save_workout_plan'.\n\n"
+            "   - VÍDEOS: Usa 'get_wger_video' para obtener la URL oficial (.mp4/.mov). NO uses los vídeos de AscendAPI.\n"
+            "   - METADATOS: Usa Wger para 'category', 'primary_muscles' y 'secondary_muscles'.\n"
+            "   - SERIES Y REPS: DEBES generar obligatoriamente el campo 'sets' como una lista de objetos: [{'reps': 12, 'weight': 20}, {'reps': 12, 'weight': 20}]. Ajusta el peso y repeticiones según el nivel del usuario.\n\n"
 
             "REGLAS PARA GUARDAR RUTINAS:\n"
             "1. Cuando el usuario acepte una rutina, LLAMA inmediatamente a 'save_workout_plan'.\n"
             "2. PROHIBIDO decir que has guardado algo si NO has ejecutado la herramienta primero.\n"
             "3. Debes inferir el 'day_of_week' (0=Lunes, 6=Domingo).\n"
-            "4. En 'exercises', combina: 'imageUrl' de Ascend, 'videoUrl' de Wger, y muscles/category de Wger.\n\n"
+            "4. En 'exercises', combina: 'imageUrl' de Ascend, 'videoUrl' de Wger, metadatos de Wger y tu generación de 'sets'.\n\n"
+
 
 
 
