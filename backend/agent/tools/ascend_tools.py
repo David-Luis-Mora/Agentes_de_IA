@@ -1,102 +1,109 @@
 import os
 import requests
+from typing import Optional
 from dotenv import load_dotenv
 from langchain_core.tools import tool
 
-# Load environment variables
+# Cargar variables de entorno
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
-RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
+# Configuración de AscendAPI (RapidAPI)
+ASCEND_HOST = os.getenv("RAPIDAPI_HOST")
+ASCEND_KEY = os.getenv("RAPIDAPI_KEY")
+ASCEND_BASE_URL = f"https://{ASCEND_HOST}/api/v1"
 
-HEADERS = {
-    "X-RapidAPI-Key": RAPIDAPI_KEY,
-    "X-RapidAPI-Host": RAPIDAPI_HOST
+ASCEND_HEADERS = {
+    "X-RapidAPI-Key": ASCEND_KEY,
+    "X-RapidAPI-Host": ASCEND_HOST,
 }
 
-BASE_URL = f"https://{RAPIDAPI_HOST}/api/v1"
+TIMEOUT = 12
 
-@tool
-def search_ascend_exercises(name: str = None, body_part: str = None, equipment: str = None, muscle: str = None, limit: int = 10):
-    """
-    Busca ejercicios en la base de datos AscendAPI (ExerciseDB con imágenes y videos).
-    Permite filtrar por nombre, parte del cuerpo (body_part), equipamiento (equipment) o músculo objetivo (muscle).
-    Retorna una lista de ejercicios con sus IDs, nombres y previsualizaciones.
-    """
-    params = {"limit": limit}
-    
-    if name:
-        url = f"{BASE_URL}/exercises/name/{name.lower()}"
-    elif body_part:
-        url = f"{BASE_URL}/exercises/bodyPart/{body_part.lower()}"
-    elif equipment:
-        url = f"{BASE_URL}/exercises/equipment/{equipment.lower()}"
-    elif muscle:
-        url = f"{BASE_URL}/exercises/target/{muscle.lower()}"
-    else:
-        url = f"{BASE_URL}/exercises"
-    
+def safe_get(url: str, headers: Optional[dict] = None, params: Optional[dict] = None) -> dict:
+    """Función auxiliar para realizar peticiones GET de forma segura."""
     try:
-        response = requests.get(url, headers=HEADERS, params=params)
-        if response.status_code == 200:
-            data = response.json().get('data', [])
-            # Retornamos los campos clave directamente en la búsqueda para que la IA
-            # NO tenga que llamar a 'details' por cada ejercicio (ahorra mucho tiempo).
-            return [
-                {
-                    "exerciseId": ex.get("exerciseId"),
-                    "name": ex.get("name"),
-                    "overview": ex.get("overview"),
-                    "instructions": ex.get("instructions"),
-                    "videoUrl": ex.get("videoUrl"),
-                    "imageUrl": ex.get("imageUrl"),
-                    "primaryMuscle": ex.get("primaryMuscle"),
-                    "secondaryMuscle": ex.get("secondaryMuscle"),
-                    "category": ex.get("category"),
-                    "equipment": ex.get("equipment")
-                } for ex in data
-            ]
-
-        return f"Error: {response.status_code}"
-    except Exception as e:
-        return f"Error: {str(e)}"
-
-@tool
-def get_ascend_exercise_details(exercise_id: str):
-    """
-    Obtiene detalles completos (HD) de un ejercicio de AscendAPI.
-    """
-    url = f"{BASE_URL}/exercises/{exercise_id}"
-    try:
-        response = requests.get(url, headers=HEADERS)
-        if response.status_code == 200:
-            data = response.json().get('data', {})
-            return {
-                "name": data.get("name"),
-                "overview": data.get("overview"),
-                "videoUrl": data.get("videoUrl"),
-                "imageUrl": data.get("imageUrl"),
-                "instructions": data.get("instructions"),
-                "primaryMuscle": data.get("primaryMuscle"),
-                "secondaryMuscle": data.get("secondaryMuscle"),
-                "category": data.get("category")
-            }
-        return f"Error: {response.status_code}"
-    except Exception as e:
-        return f"Error: {str(e)}"
-
+        response = requests.get(url, headers=headers, params=params, timeout=TIMEOUT)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        return {"error": str(e), "url": url}
 
 @tool
 def list_ascend_body_parts():
     """
     Lista todas las categorías de partes del cuerpo disponibles en AscendAPI.
+    Útil para saber qué términos usar en la búsqueda por body_part.
     """
-    url = f"{BASE_URL}/bodyparts"
-    try:
-        response = requests.get(url, headers=HEADERS)
-        if response.status_code == 200:
-            return response.json().get('data', [])
-        return f"Error: {response.status_code}"
-    except Exception as e:
-        return f"Error: {str(e)}"
+    url = f"{ASCEND_BASE_URL}/bodyparts"
+    payload = safe_get(url, headers=ASCEND_HEADERS)
+    
+    if payload.get("error"):
+        return payload
+    
+    return payload.get("data", [])
+
+@tool
+def search_ascend_exercises(
+    name: Optional[str] = None,
+    body_part: Optional[str] = None,
+    equipment: Optional[str] = None,
+    muscle: Optional[str] = None,
+    limit: int = 10,
+):
+    """
+    Busca ejercicios en la base de datos de AscendAPI.
+    Permite filtrar por nombre, parte del cuerpo, equipamiento o músculo objetivo.
+    Devuelve información completa: instrucciones, videos, imágenes, equipos y músculos.
+    """
+    params = {"limit": limit}
+
+    if name:
+        url = f"{ASCEND_BASE_URL}/exercises/name/{name.lower()}"
+    elif body_part:
+        url = f"{ASCEND_BASE_URL}/exercises/bodyPart/{body_part.lower()}"
+    elif equipment:
+        url = f"{ASCEND_BASE_URL}/exercises/equipment/{equipment.lower()}"
+    elif muscle:
+        url = f"{ASCEND_BASE_URL}/exercises/target/{muscle.lower()}"
+    else:
+        url = f"{ASCEND_BASE_URL}/exercises"
+
+    payload = safe_get(url, headers=ASCEND_HEADERS, params=params)
+
+    if payload.get("error"):
+        return payload
+
+    data = payload.get("data", [])
+    for ex in data:
+        print( {
+            "source": "ascend",
+            "exercise_id": ex.get("exerciseId"),
+            "name": ex.get("name"),
+            "overview": ex.get("overview"),
+            "instructions": ex.get("instructions"),
+            "video_url": ex.get("videoUrl"),
+            "image_url": ex.get("imageUrl"),
+            "equipments": ex.get("equipments", []),
+            "body_parts": ex.get("bodyParts", []),
+            "exercise_type": ex.get("exerciseType"),
+            "target_muscles": ex.get("targetMuscles", []),
+            "secondary_muscles": ex.get("secondaryMuscles", []),
+        })
+    return [
+        {
+            "source": "ascend",
+            "exercise_id": ex.get("exerciseId"),
+            "name": ex.get("name"),
+            "overview": ex.get("overview"),
+            "instructions": ex.get("instructions"),
+            "video_url": ex.get("videoUrl"),
+            "image_url": ex.get("imageUrl"),
+            "equipments": ex.get("equipments", []),
+            "body_parts": ex.get("bodyParts", []),
+            "exercise_type": ex.get("exerciseType"),
+            "target_muscles": ex.get("targetMuscles", []),
+            "secondary_muscles": ex.get("secondaryMuscles", []),
+        }
+        for ex in data
+    ]

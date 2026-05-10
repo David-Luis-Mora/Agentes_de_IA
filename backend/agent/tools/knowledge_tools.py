@@ -95,6 +95,7 @@ def search_exercise_technique(query: str):
     """
     Busca técnica de ejercicios específicos en la enciclopedia de musculación.
     """
+    print(f"Buscando técnica para: {query}")
     try:
         manager = ensure_initialized("exercises")
         return manager.search(query, k=3)

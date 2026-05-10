@@ -8,7 +8,6 @@ from asgiref.sync import sync_to_async
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 # Importación de herramientas externas
-from .tools.wger_tools import get_exercises_by_muscle, get_exercise_details_rich, get_wger_video
 from .tools.knowledge_tools import (
     search_training_advice, 
     search_exercise_technique, 
@@ -17,7 +16,7 @@ from .tools.knowledge_tools import (
     index_new_knowledge
 )
 from .tools.user_tools import get_my_profile, update_my_profile, save_workout_plan, user_ctx, request_ctx
-from .tools.ascend_tools import search_ascend_exercises, get_ascend_exercise_details, list_ascend_body_parts
+from .tools.ascend_tools import (list_ascend_body_parts, search_ascend_exercises)
 
 
 # Rutas
@@ -75,41 +74,26 @@ async def get_gym_agent(user, request=None, checkpointer=None):
     # 1. Preparar contexto de prompt
     user_data = await fetch_user_context(user)
     profile_context = format_profile_context(user_data, user.username)
-    print(f"DEBUG: Contexto cargado para {user.username}")
-    
-    mcp_tools = []
     
     # 3. Consolidar todas las herramientas
     all_tools =[
         get_my_profile,
         update_my_profile,
         save_workout_plan,
-        get_exercises_by_muscle,
-        get_exercise_details_rich,
-        get_wger_video,
         search_training_advice,
         search_exercise_technique,
         search_recovery_and_rest,
         search_nutrition_articles,
         index_new_knowledge,
         search_ascend_exercises,
-        get_ascend_exercise_details,
-        list_ascend_body_parts
+        list_ascend_body_parts,
     ]
 
-    
     # 4. Configurar el LLM
     llm = ChatOllama(
-        model="qwen3.6:35b",
-        # model="gemma4:26b",
-        # model="qwen3:14b",
-        # model="gemma3:12b",
+        model="qwen3:14b",
         reasoning=False,
-        # num_ctx=32000,
-        # num_ctx=16000,
-        num_ctx=12000,
-        # num_ctx=8000,
-        # base_url="http://192.168.117.48:11434"
+        num_ctx=8000,
     )
     
     # 5. Crear el Agente
@@ -122,31 +106,23 @@ async def get_gym_agent(user, request=None, checkpointer=None):
             "CONTEXTO DEL USUARIO:\n"
             f"{profile_context}\n\n"
             "Reglas de Oro de Conocimiento:\n"
-            "1. ENTRENAMIENTO: Usa 'search_training_advice' para principios de hipertrofia, series, repeticiones y sobrecarga.\n"
-            "2. TÉCNICA: Usa 'search_exercise_technique' para saber CÓMO ejecutar un ejercicio correctamente.\n"
-            "3. RECUPERACIÓN: Usa 'search_recovery_and_rest' si el usuario está cansado o pregunta por descanso.\n"
-            "4. NUTRICIÓN: Usa 'search_nutrition_articles' para consejos nutricionales.\n"
-            "5. ESTRATEGIA HÍBRIDA DE DATOS (Calidad Máxima):\n"
-            "   - IMÁGENES: Usa 'search_ascend_exercises' para obtener la 'imageUrl'. Son visualmente superiores.\n"
-            "   - VÍDEOS: Usa 'get_wger_video' para obtener la URL oficial (.mp4/.mov). NO uses los vídeos de AscendAPI.\n"
-            "   - METADATOS: Usa Wger para 'category', 'primary_muscles' y 'secondary_muscles'.\n"
-            "   - SERIES Y REPS: DEBES generar obligatoriamente el campo 'sets' como una lista de objetos: [{'reps': 12, 'weight': 20}, {'reps': 12, 'weight': 20}]. Ajusta el peso y repeticiones según el nivel del usuario.\n\n"
+            "1. ENTRENAMIENTO: Usa 'search_training_advice' para principios de hipertrofia y sobrecarga.\n"
+            "2. TÉCNICA Y CARGAS (RAG): DEBES consultar la 'Enciclopedia_de_ejercicios_de_musculacion' mediante 'search_exercise_technique' para saber CÓMO ejecutar un ejercicio y qué SERIES/PESOS recomendar.\n"
+            "3. RECUPERACIÓN Y NUTRICIÓN: Usa las herramientas de búsqueda de artículos correspondientes.\n"
+            "4. DATOS DE EJERCICIOS (AscendAPI):\n"
+            "   - Usa 'search_ascend_exercises' para obtener TODO: 'image_url', 'video_url', 'instructions', 'equipments' y músculos.\n"
+            "   - PROHIBICIÓN CRÍTICA: Está terminantemente PROHIBIDO inventar URLs de vídeos o imágenes. NUNCA uses 'wger.com' o 'wger.de'. Usa ÚNICAMENTE las URLs que devuelva la herramienta en 'image_url' y 'video_url'.\n"
+            "   - Si la herramienta no devuelve una URL válida de ExerciseDB, deja el campo vacío.\n"
+            "   - SERIES Y PESOS: Genera el campo 'sets' como una lista de objetos: [{'reps': 12, 'weight': 20}, ...].\n\n"
 
             "REGLAS PARA GUARDAR RUTINAS:\n"
             "1. Cuando el usuario acepte una rutina, LLAMA inmediatamente a 'save_workout_plan'.\n"
             "2. PROHIBIDO decir que has guardado algo si NO has ejecutado la herramienta primero.\n"
-            "3. Debes inferir el 'day_of_week' (0=Lunes, 6=Domingo).\n"
-            "4. En 'exercises', combina: 'imageUrl' de Ascend, 'videoUrl' de Wger, metadatos de Wger y tu generación de 'sets'.\n\n"
-
-
-
-
-
+            "3. En 'exercises', incluye la información detallada de AscendAPI (image_url, video_url) y tu generación de 'sets' basada en la Enciclopedia.\n\n"
             "Reglas Críticas de Comportamiento:\n"
             "- YA TIENES el contexto del usuario arriba. NO pidas peso, altura u objetivos si ya están presentes.\n"
-            "- Si el usuario confirma que la rutina le gusta, usa 'save_workout_plan' inmediatamente sin volver a preguntar.\n"
             "- Responde siempre en Español de forma profesional, clara y motivadora.\n"
-            "- No tardar más de 2 minutos en responder."
+            "- No inventes datos técnicos; si no están en la herramienta o la enciclopedia, di que no dispones de esa información específica.\n"
         )
     )
     

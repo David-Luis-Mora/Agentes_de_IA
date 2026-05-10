@@ -88,6 +88,13 @@ def save_workout_plan(plan: list):
                     # Mapping logic based on user quality preference
                     video = ex.get('video_url', ex.get('videoUrl', ''))
                     image = ex.get('image_url', ex.get('imageUrl', ''))
+
+                    # LIMPIEZA ANTIALUCINACIÓN: Si la IA se inventa URLs de Wger, las borramos
+                    if video and ("wger.com" in video or "wger.de" in video):
+                        video = ""
+                    if image and ("wger.com" in image or "wger.de" in image):
+                        image = ""
+
                     category = ex.get('category', '')
                     instructions = ex.get('instructions', '')
 
