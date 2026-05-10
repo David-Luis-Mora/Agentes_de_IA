@@ -100,14 +100,16 @@ async def get_gym_agent(user, request=None, checkpointer=None):
     
     # 4. Configurar el LLM
     llm = ChatOllama(
-        # model="qwen3.6:35b",
-        model="gemma4:26b",
+        model="qwen3.6:35b",
+        # model="gemma4:26b",
+        # model="qwen3:14b",
+        # model="gemma3:12b",
         reasoning=False,
         # num_ctx=32000,
         # num_ctx=16000,
         num_ctx=12000,
         # num_ctx=8000,
-        base_url="http://192.168.117.48:11434"
+        # base_url="http://192.168.117.48:11434"
     )
     
     # 5. Crear el Agente
