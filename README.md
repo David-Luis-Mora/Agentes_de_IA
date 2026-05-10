@@ -108,5 +108,20 @@ Para que el sistema pueda traerte los vídeos y ejercicios, necesitas una llave 
 
 ---
 
-## 🧠 Reflexión Final
-GymAI demuestra cómo la **IA Generativa** puede ser **determinista y útil**. Al usar filtros de seguridad (anti-alucinación) y consultas a libros reales, garantizamos que el entrenamiento propuesto sea seguro, científico y personalizado.
+## 🧠 Reflexión Final: Retos y Aprendizajes
+
+Este proyecto ha sido un desafío de ingeniería que va más allá de un simple chat. A continuación, detallo las conclusiones y problemas enfrentados durante el desarrollo:
+
+### ⚙️ Limitaciones de Hardware y Software
+La experiencia con GymAI depende directamente de la capacidad computacional. Al ejecutar **Ollama de forma local**, la velocidad de respuesta y la profundidad del razonamiento del agente varían drásticamente según la GPU disponible. Una mayor capacidad de hardware no solo reduce la latencia, sino que permite usar modelos con más parámetros que siguen mejor las instrucciones complejas.
+
+### 🏋️ El Reto de la Calibración de Cargas
+Uno de los problemas más complejos ha sido la recomendación de pesos. Aunque la IA consulta la **Enciclopedia de Musculación**, es difícil lograr una precisión absoluta en la relación entre el nivel del usuario y el tipo de ejercicio:
+*   **Ejercicios Compuestos vs. Aislados**: No es lo mismo manejar 10kg en una sentadilla que en una extensión de tríceps. Mientras que en uno es un peso insignificante, en otro puede representar una intensidad máxima. 
+*   **Personalización Dinámica**: Conseguir que la IA ajuste el peso de forma perfecta para un "principiante" en todos los ejercicios es un reto abierto, ya que la intensidad percibida es subjetiva y varía según la biomecánica de cada persona.
+
+### 🎮 Control y Predictibilidad
+Trabajar con agentes autónomos implica aceptar que no siempre se tiene un control del 100% sobre la salida. A pesar de los filtros antialucinación implementados en Python, los modelos de lenguaje a veces intentan "rellenar" información cuando las APIs externas no devuelven datos, lo que requiere un monitoreo y ajuste constante de los prompts del sistema.
+
+### 🚀 Futuro del Proyecto
+A pesar de estas limitaciones, GymAI sienta las bases de un sistema donde la IA no solo informa, sino que **actúa y automatiza**, integrándose en el flujo real de la vida del usuario para mejorar su salud de forma basada en evidencia.
