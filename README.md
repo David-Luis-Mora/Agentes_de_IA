@@ -95,11 +95,16 @@ npm run dev
 ```
 
 ### 4. Variables de Entorno (Las Llaves)
-Para que las APIs de ejercicios funcionen, crea un archivo llamado `.env` en la raíz del proyecto y añade tus credenciales de RapidAPI:
-```env
-RAPIDAPI_KEY=tu_clave_de_rapidapi_aqui
-RAPIDAPI_HOST=edb-with-videos-and-images-by-ascendapi.p.rapidapi.com
-```
+Para que el sistema pueda traerte los vídeos y ejercicios, necesitas una llave de acceso. 
+
+1.  **Consigue tu API Key**: Haz clic en el siguiente enlace, regístrate (es gratuito) y copia tu `X-RapidAPI-Key`:
+    *   👉 [**Obtener mi API Key en RapidAPI (AscendAPI)**](https://rapidapi.com/ascendapi/api/edb-with-videos-and-images-by-ascendapi/playground/apiendpoint_bafbc96b-3f58-4a76-aad0-6f8bc44d3afb)
+
+2.  **Configura tu archivo**: Crea un archivo llamado `.env` en la raíz del proyecto y pega tu clave:
+    ```env
+    RAPIDAPI_KEY=pega_aqui_tu_llave_de_rapidapi
+    RAPIDAPI_HOST=edb-with-videos-and-images-by-ascendapi.p.rapidapi.com
+    ```
 
 ---
 
